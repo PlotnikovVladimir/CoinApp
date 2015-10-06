@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>APP with AngularJS</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+</head>
+<body>
+    <div ng-app = "mainApp" ng-controller = "TestController">
+        <p>
+            Filter <input ng-model="query">
+        </p>
+        <ul>
+            <li ng-repeat="x in names | filter:query">
+                {{x.type + " -  " + x.length + "  -  " + x.heigth}}
+            </li>
+        </ul>
+        <p>....................</p>
+        {{7+5}}
+        <p>....</p>
+        <input type="text" ng-model="name">
+        Hi, {{name}}!
+        <p></p>
+    </div>
+
+    <script>
+        var app = angular.module('mainApp', []);
+        app.controller('TestController', function($scope, $http){
+           $http.get("http://localhost:8080/api/v1")
+           .success(function(responce){$scope.names = responce;});
+        });
+    </script>
+
+
+    <p> webapp describe s index</p>
+    <a href="/api">click here</a>
+
+
+
+
+</body>
+</html>

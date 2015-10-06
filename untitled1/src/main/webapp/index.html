@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html ng-app = "mainApp">
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular-animate.js"></script>
+    <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.13.4.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="lib/jquery-2.1.3.min.js"></script>
+    <script src="lib/boostrap/bootstrap.js"></script>
+    <script src="js/index.js"></script>
+
+    <title>Coin</title>
+    <style>
+        body {
+            background: #fffdfd;
+            padding-top: 70px;
+        }
+        #search {
+            float: right;
+            border: none;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation" ng-controller = "MenuCntr">
+    <div class="container">
+
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/"><span class="glyphicon glyphicon-home"></span>&nbsp;Home</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li class="navbar-brand" >{{curUser.role}}</li>
+                <!--<li><a href="#">Link</a></li>-->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">actions<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li ><a ng-if="curUser.role == 'ROLE_ADMIN'" href="#" ng-click="openModalForAddCoin('lg')">Add Coin</a></li>
+                        <li><a href="#">..........</a></li>
+                        <li class="divider"></li>
+                        <li ng-if="curUser.role == null"><a href="/login">LogIn</a></li>
+                        <li ng-if="curUser.role == null"><a href="#" ng-click="openModalForRegUser('lg')">Registration</a></li>
+                        <li ng-if="curUser.role != null"><a href="/j_spring_security_logout">Log Out</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div>
+</nav>
+
+
+<!-- Page Content -->
+<div class="container" ng-controller = "CategoryCntr">
+
+    <!--///////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <script type="text/ng-template" id="addCoin.html">
+        <form name="newCoinForm" validate ng-submit="saveCoin()">
+            <div class="modal-header">
+                <h3 class="modal-title">Add coin</h3>
+            </div>
+            <div class="modal-body">
+                <p>......</p>
+                <p>description : <input type="text" ng-model="description" required/></p>
+                <p>name : <input type="text" ng-model="name" required/></p>
+                <p>year : <input type="number" ng-model="yearCa" name="yearCa" min="1" max="2015" integer required/></p>
+                <p>
+                    <span style="color:red" ng-show="newCoinForm.yearCa.$error.integer">Year is not valid integer</span>
+                    <span style="color:red" ng-show="newCoinForm.yearCa.$invalid">Year must be in range 0 to 2015</span>
+                </p>
+                <p></p>
+                <p>Category
+                    <select ng-model="selectedCategoryId" name="selectedCategoryId" required
+                            ng-options="category.id as category.name for category in categories">
+                        <option value="">Select category</option>
+                        <!--<option ng-repeat="category in categories" value="{{category.id}}">{{category.name}}</option>-->
+                    </select>
+                </p>
+                <p>________________________________</p>
+                <label>Avers : </label>
+                <input type="file" data-fileread="fileImg1" accept="image/*" required>
+                <img class="img-rounded" ng-src="{{fileImg1}}" height="85" width="100" alt="" ng-show="fileImg1"/>
+                <p></p>
+                <label>Revers : </label>
+                <input type="file" data-fileread="fileImg2" accept="image/*" required>
+                <img class="img-rounded" ng-src="{{fileImg2}}" height="85" width="100" alt="" ng-show="fileImg2"/>
+                <p></p>
+
+            </div>
+            <div class="modal-footer">
+                <!--<%&#45;&#45;<button class="btn btn-primary" type="button" ng-click="saveCoin()">Save</button>&#45;&#45;%>-->
+                <button class="btn btn-primary" type="submit">Save</button>
+                <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+            </div>
+        </form>
+    </script>
+    <!--///////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <!--///////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <script type="text/ng-template" id="viewCoin.html">
+        <form name="viewCoinForm" validate ng-submit="saveCoinEdit()">
+            <div class="modal-header">
+                <h3 class="modal-title">View coin</h3>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div><p>{{currentCoin.name}}  {{currentCoin.year}}</p></div>
+                    <div>
+                        <img class="img-rounded" ng-src="/img/{{currentCoin.id}}a.jpg" border="2" height="255" width="300">
+                        <img class="img-rounded" ng-src="/img/{{currentCoin.id}}r.jpg" border="2" height="255" width="300">
+                    </div>
+                    <p> Description : {{currentCoin.description}}</p>
+                    <p></p>
+                    <span>probable matches :</span>
+                    <p></p>
+                    <span ng-repeat="image in randomCoinsImage.responseData.results">
+                        <img class="img-rounded" ng-src="{{image.url}}" border="2" height="85" width="150">
+                    </span>
+                </div>
+                <div ng-if="curUser.role == 'ROLE_ADMIN'">   <!--for ng-if  need use parent scope, ng-if creates a child scope-->
+                    <p>________________________________</p>
+                    <p>Edit : </p>
+                    <p> description : <input type="text" ng-model="$parent.description" required/></p>
+                    <p>name : <input type="text" ng-model="$parent.name" required/></p>
+                    <p>year : <input type="number" ng-model="$parent.yearCa" name="yearCa" min="1" max="2015" integer required/></p>
+                    <p>
+                        <span style="color:red" ng-show="viewCoinForm.yearCa.$error.integer">Year is not valid integer</span>
+                        <span style="color:red" ng-show="viewCoinForm.yearCa.$invalid">Year must be in range 0 to 2015</span>
+                    </p>
+                    <p>Category :
+                        <select ng-options="category.id as category.name for category in categories" ng-model="$parent.selectedCategoryId"></select>
+                    </p>
+                    <p>________________________________</p>
+                    <label>Avers : </label>
+                    <input type="file" data-fileread="$parent.fileImg1" accept="image/*">
+                    <img class="img-rounded" ng-src="{{$parent.fileImg1}}" height="85" width="100" ng-show="$parent.fileImg1" alt="..."/>
+
+                    <p></p>
+                    <label>Revers : </label>
+                    <input type="file" data-fileread="$parent.fileImg2" accept="image/*">
+                    <img class="img-rounded" ng-src="{{$parent.fileImg2}}" height="85" width="100" ng-show="$parent.fileImg2" alt="..."/>
+                    <p></p>
+                    <button class="btn btn-primary" type="button" ng-click="deleteCoin()" ng-if="curUser.role == 'ROLE_ADMIN'">Delete Coin</button>
+
+                </div>
+                <div class="modal-footer">
+                    <!--<button class="btn btn-primary" type="button" ng-click="saveCoinEdit()">Save</button>-->
+                    <button class="btn btn-primary" type="submit" ng-if="curUser.role == 'ROLE_ADMIN'">Save</button>
+                    <button class="btn btn-warning" type="button" ng-click="cancel()">Close</button>
+                </div>
+            </div>
+        </form>
+    </script>
+<!--///////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <script type="text/ng-template" id="addUser.html">
+        <form name="newUser" validate ng-submit="saveUser()">
+            <div class="modal-header">
+                <h3 class="modal-title">Add User</h3>
+            </div>
+            <div class="modal-body">
+                <p>......</p>
+                <p>Login : <input type="text" ng-model="userLogin" required/></p>
+                <p>E-mail : <input type="email" ng-model="userEmail" required/></p>
+                <p>Password : <input type="password" ng-model="userPassword" required/></p>
+                <p>________________________________</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" type="submit">Save</button>
+                <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+            </div>
+        </form>
+    </script>
+
+    <!--///////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <!--<div ng-if="curUser.role != null">-->
+        <!--<button type="button" class="btn btn-default" ng-click="open('lg')">Add Coin</button>-->
+    <!--</div>-->
+    <!--<p>{{curUser.role}}</p>-->
+
+    <div class="row">
+        <div class="col-md-3" >
+            <li>
+                <a ng-href="#" ng-click="showAll()" style="color:#0000FF">Show All</a>
+            </li>
+            <li ng-repeat="category in categories | filter:{parentCategory:0}">
+                <a ng-href="#" ng-click="showCategory(category.id, category.name)" ng-init="parentI = category.id">{{category.name}}</a>
+                <ul ng-repeat="subcategory in categories | filter:{parentCategory:parentI}">
+                    <a ng-href="#" ng-click="showSubCategory(subcategory.id, subcategory.name)">{{subcategory.name}}</a>
+                </ul>
+            </li>
+        </div>
+        <!--<div id="search"><label>search : <input type="text" id="searchText" ng-model="searchText"/></label></div>-->
+
+        <div class="col-md-9">
+            <div class="thumbnail">
+                <div id="contentCoins">
+                    <article ng-repeat="coin in coinsForView | filter:{category:forFilter}">
+                        <a ng-href="#" ng-click="openView('lg', coin)">
+                            <span>
+                                <img class="img-rounded" ng-src="/img/{{coin.id}}a.jpg" border="2" height="85" width="100" alt="..."/>
+                                <img class="img-rounded" ng-src="/img/{{coin.id}}r.jpg" border="2" height="85" width="100" alt="..."/>
+                            </span>
+                            <span>description: {{coin.year}} {{coin.name}}  {{coin.description}}</span>
+                        </a>
+                        <p></p>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.container -->
+
+</body>
+</html>
